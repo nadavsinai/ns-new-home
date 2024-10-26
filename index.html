@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Nadav Sinai - Homepage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: fadeIn 0s ease-in-out forwards, typeWriter 2s steps(20) 1s forwards;
+            white-space: nowrap;
+            overflow: hidden;
+            width: 0;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: fadeIn 2s ease-in-out 3s forwards;
+            /* Starts 1s after h1 finishes */
+        }
+
+        img {
+            max-width: 200px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: fadeIn 2s ease-in-out 3s forwards;
+        }
+
+        p {
+            margin-bottom: 10px;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes typeWriter {
+            to {
+                width: 100%;
+            }
+        }
+
+        @font-face {
+            font-family: 'JustVectorRegular';
+            src: url('justvector-webfont.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        ul.social {
+            font-family: Lora, Georgia, "Times New Roman", Times, serif;
+            color: rgb(255, 255, 255);
+            text-shadow: 2px 2px 0px #333;
+            -webkit-user-select: none;
+            -webkit-text-size-adjust: none;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+            cursor: default;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            font-size: 0.92em;
+            line-height: 150%;
+            padding: 0;
+            list-style: none;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        ul.social li a {
+            color: #fff;
+            background: #555;
+            background-color: rgba(0, 0, 0, 0.4);
+            display: block;
+            font-family: 'JustVectorRegular';
+            font-size: 3em;
+            padding: .2em .2em .15em .2em;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        ul.social li a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #555;
+            z-index: -1;
+            transition: transform 1s ease-in-out;
+            transform: translateX(-100%);
+        }
+
+        ul.social li a:hover::before {
+            transform: translateX(0);
+        }
+
+        ul.social li a.facebook:hover::before {
+            background-color: #1877F2;
+        }
+
+        ul.social li a.twitter:hover::before {
+            background-color: #1DA1F2;
+        }
+
+        ul.social li a.linkedin:hover::before {
+            background-color: #0A66C2;
+        }
+
+        ul.social li a.github:hover::before {
+            background-color: #E34C26;
+        }
+
+        a.email-link {
+            color: #ffffff;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        a.email-link:hover {
+            color: #cccccc;
+        }
+
+        #matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="matrix-bg"></canvas>
+    <div class="container">
+        <h1>Nadav Sinai</h1>
+        <h2>Tech Lead@ Philips Medical Systems</h2>
+        <img src="me@philips.webp" alt="Nadav Sinai">
+        <p>Email: <a href="mailto:ns@nadavsinai.com" class="email-link">ns@nadavsinai.com</a></p>
+        <ul class="social">
+            <li><a class="facebook" href="http://facebook.com/nd.sinai">X</a></li>
+            <li><a class="twitter" href="https://twitter.com/nadavsinai">_</a></li>
+            <li><a class="linkedin" href="http://il.linkedin.com/pub/nadav-sinai/51/131/2a6/">v</a></li>
+            <li><a class="github" href="https://github.com/nadavsinai">j</a></li>
+
+        </ul>
+
+    </div>
+
+    <script>
+        // Wait for 5 seconds before starting the matrix effect
+
+        setTimeout(() => {
+            const canvas = document.getElementById('matrix-bg');
+            const gl = canvas.getContext('webgl');
+
+            if (!gl) {
+                console.error('Unable to initialize WebGL. Your browser may not support it.');
+                return;
+            }
+
+            // Vertex shader program
+            const vsSource = `
+                attribute vec4 aVertexPosition;
+                attribute vec2 aTextureCoord;
+
+                varying highp vec2 vTextureCoord;
+
+                void main(void) {
+                    gl_Position = aVertexPosition;
+                    vTextureCoord = aTextureCoord;
+                }
+            `;
+
+            // Fragment shader program
+            const fsSource = `
+                precision highp float;
+                varying highp vec2 vTextureCoord;
+                uniform sampler2D uSampler;
+                uniform vec2 uLensPosition;
+                uniform float uLensRadius;
+
+                void main(void) {
+                    vec4 texColor = texture2D(uSampler, vTextureCoord);
+                    
+                    // Calculate distance from current pixel to lens center
+                    float dist = distance(gl_FragCoord.xy, uLensPosition);
+                    
+                    // Create a smooth transition for the lens edge
+                    float lensEffect = smoothstep(uLensRadius, uLensRadius - 10.0, dist);
+                    
+                    // Darken the areas outside the lens
+                    texColor.rgb *= 0.3 + 0.7 * lensEffect;
+                    
+                    gl_FragColor = texColor;
+                }
+            `;
+
+            // Initialize a shader program
+            function initShaderProgram(gl, vsSource, fsSource) {
+                const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+                const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+                const shaderProgram = gl.createProgram();
+                gl.attachShader(shaderProgram, vertexShader);
+                gl.attachShader(shaderProgram, fragmentShader);
+                gl.linkProgram(shaderProgram);
+
+                if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+                    console.error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+                    return null;
+                }
+
+                return shaderProgram;
+            }
+
+            // Create a shader of the given type, upload the source and compile it
+            function loadShader(gl, type, source) {
+                const shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+
+                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                    console.error('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+                    gl.deleteShader(shader);
+                    return null;
+                }
+
+                return shader;
+            }
+
+            const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+
+            const programInfo = {
+                program: shaderProgram,
+                attribLocations: {
+                    vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+                    textureCoord: gl.getAttribLocation(shaderProgram, 'aTextureCoord'),
+                },
+                uniformLocations: {
+                    uSampler: gl.getUniformLocation(shaderProgram, 'uSampler'),
+                    uLensPosition: gl.getUniformLocation(shaderProgram, 'uLensPosition'),
+                    uLensRadius: gl.getUniformLocation(shaderProgram, 'uLensRadius'),
+                },
+            };
+
+            // Create buffer for position
+            const positionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            const positions = [
+                -1.0,  1.0,
+                 1.0,  1.0,
+                -1.0, -1.0,
+                 1.0, -1.0,
+            ];
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+            // Create buffer for texture coordinates
+            const textureCoordBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
+            const textureCoordinates = [
+                0.0,  0.0,
+                1.0,  0.0,
+                0.0,  1.0,
+                1.0,  1.0,
+            ];
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);
+
+            // Create and bind texture
+            const texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+
+            // Fill the texture with a 1x1 blue pixel
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 255, 0, 255]));
+
+            // Create offscreen canvas for text rendering
+            const offscreenCanvas = document.createElement('canvas',{willReadFrequently: true});
+            offscreenCanvas.width = 512;
+            offscreenCanvas.height = 512;
+            const offscreenCtx = offscreenCanvas.getContext('2d');
+
+            let scrollY = 0;
+            const lineHeight = 20;
+            const totalLines = Math.floor(offscreenCanvas.height / lineHeight);
+            let currentLine = 0;
+
+            function updateTexture() {
+                offscreenCtx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                offscreenCtx.fillRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+
+                offscreenCtx.fillStyle = '#0F0';
+                offscreenCtx.font = '16px monospace';
+
+                // Scroll existing content
+                const imageData = offscreenCtx.getImageData(0, lineHeight, offscreenCanvas.width, offscreenCanvas.height - lineHeight);
+                offscreenCtx.putImageData(imageData, 0, 0);
+
+                // Clear the bottom line
+                offscreenCtx.fillStyle = 'rgba(0, 0, 0, 1)';  // Fully opaque black
+                offscreenCtx.fillRect(0, offscreenCanvas.height - lineHeight, offscreenCanvas.width, lineHeight);
+
+                offscreenCtx.fillStyle = '#0F0';
+                offscreenCtx.font = '16px monospace';
+
+                // Add new line at the bottom
+                const y = offscreenCanvas.height - lineHeight / 4;  // Adjust vertical position
+                const charWidth = 10;  // Adjust this value based on your font size
+                const columns = Math.floor(offscreenCanvas.width / charWidth);
+                
+                for (let i = 0; i < columns; i++) {
+                    const x = i * charWidth;
+                    const char = String.fromCharCode(33 + Math.random() * 94);
+                    offscreenCtx.fillText(char, x, y);
+                }
+
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, offscreenCanvas);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            }
+
+            let lensX = 0;
+            let lensY = 0;
+            const lensRadius = 100;
+            let lensDirection = 1;
+            const lensSpeed = 5; 
+            const verticalAmplitude =  Math.random()*350; 
+
+            function updateLensPosition() {
+                lensX += lensDirection * lensSpeed;
+                if (lensX > canvas.width || lensX < 0) {
+                    lensDirection *= -1;
+                }
+                lensY = canvas.height/2 -100  + Math.sin(lensX / 20) * verticalAmplitude;
+            }
+
+            function render() {
+                updateTexture();
+                updateLensPosition();
+
+                gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                gl.vertexAttribPointer(programInfo.attribLocations.vertexPosition, 2, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
+                gl.vertexAttribPointer(programInfo.attribLocations.textureCoord, 2, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
+
+                gl.useProgram(programInfo.program);
+
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
+
+                // Set lens uniforms
+                gl.uniform2f(programInfo.uniformLocations.uLensPosition, lensX, canvas.height - lensY);
+                gl.uniform1f(programInfo.uniformLocations.uLensRadius, lensRadius);
+
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+                requestAnimationFrame(render);
+            }
+
+            // Set canvas size
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                gl.viewport(0, 0, canvas.width, canvas.height);
+            }
+
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            render();
+        }, 5000); // 5000 milliseconds = 5 seconds
+    </script>
+</body>
+
+</html>
